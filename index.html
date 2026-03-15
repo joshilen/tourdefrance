@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tour de France &mdash; An All-White Blind Tasting</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--linen:#FAF0E6;--bleu:#002654;--blanc:#FFFFFF;--rouge:#CE1126;--or:#C9A94E;--creme:#F5F0E8;--smoke:rgba(0,38,84,.06)}
+*{box-sizing:border-box}
+.reveal-viewport{background:var(--linen)!important}
+.reveal{font-family:'DM Sans',sans-serif;color:var(--bleu);font-size:20px}
+.reveal .slides section{background:transparent;padding:30px 40px;height:100%!important}
+.reveal h1,.reveal h2,.reveal h3,.reveal h4{font-family:'Playfair Display',serif;color:var(--bleu);text-transform:none;letter-spacing:-.01em;line-height:1.15}
+.reveal h1{font-size:3.2em;font-weight:900}.reveal h2{font-size:2em;font-weight:700}.reveal h3{font-size:1.2em;font-weight:600;color:var(--rouge)}
+.reveal .slide-number{font-family:'DM Sans',sans-serif;font-size:11px;color:var(--bleu);background:rgba(0,38,84,.06);padding:4px 10px;border-radius:10px}
+.tricolore-rule{border:none;height:3px;background:linear-gradient(90deg,var(--bleu) 33%,var(--blanc) 33%,var(--blanc) 66%,var(--rouge) 66%);width:120px;margin:18px auto;border-radius:1px}
+.tricolore-rule-wide{border:none;height:3px;background:linear-gradient(90deg,var(--bleu) 33%,var(--blanc) 33%,var(--blanc) 66%,var(--rouge) 66%);width:200px;margin:18px auto;border-radius:1px}
+/* Split layout: text left, image right */
+.split-slide{display:flex;align-items:stretch;gap:40px;text-align:left;height:600px}
+.split-slide .text-side{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center}
+.split-slide .image-side{flex:0 0 400px;display:flex;align-items:center;justify-content:center;height:600px}
+.split-slide .image-side img{height:100%;width:100%;border-radius:10px;box-shadow:0 8px 40px rgba(0,38,84,.12);object-fit:cover;display:block}
+/* Timeline */
+.timeline{text-align:left;max-width:520px;position:relative;padding-left:36px}
+.timeline::before{content:'';position:absolute;left:10px;top:5px;bottom:5px;width:2px;background:linear-gradient(to bottom,var(--bleu),var(--rouge));border-radius:2px}
+.timeline-item{position:relative;margin-bottom:16px;padding-left:10px;font-size:.82em;line-height:1.6;color:var(--bleu)}
+.timeline-item::before{content:'';position:absolute;left:-32px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--or);box-shadow:0 0 6px rgba(201,169,78,.3)}
+.timeline-item strong{color:var(--rouge);font-weight:700}
+/* Wine reveal cards */
+.wine-card{text-align:left;max-width:500px}
+.wine-name{font-family:'Playfair Display',serif;font-size:1.5em;color:var(--bleu);font-weight:700;margin-bottom:6px;line-height:1.2}
+.wine-region{font-family:'DM Sans',sans-serif;font-size:.8em;color:var(--rouge);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin:4px 0 10px}
+.wine-detail{font-size:.78em;color:rgba(0,38,84,.7);margin:4px 0;line-height:1.5}
+.wine-classification{display:inline-block;background:var(--blanc);border:1.5px solid var(--or);border-radius:5px;padding:3px 12px;font-size:.7em;color:var(--bleu);font-weight:600;margin:8px 0}
+.scores{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.score-badge{display:inline-flex;align-items:center;gap:5px;background:var(--rouge);border-radius:5px;padding:4px 10px;font-size:.65em;color:var(--blanc);font-weight:500}
+.score-badge.alt{background:var(--bleu)}
+.score-badge .score-num{font-weight:800;font-size:1.15em}
+.tasting-notes{font-style:italic;color:var(--bleu);font-size:.78em;line-height:1.6;max-width:480px;margin:10px 0;padding:10px 16px;border-left:3px solid var(--or);background:rgba(201,169,78,.06);border-radius:0 6px 6px 0}
+/* Rules */
+.rules-list{text-align:left;max-width:520px;margin:0 auto;list-style:none;padding:0}
+.rules-list li{padding:10px 0 10px 46px;position:relative;font-size:.88em;line-height:1.5;border-bottom:1px solid rgba(0,38,84,.08)}
+.rules-list li .rule-num{position:absolute;left:0;top:8px;width:30px;height:30px;border-radius:50%;background:var(--bleu);color:var(--blanc);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85em}
+/* Stats */
+.stat-row{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin:18px 0}
+.stat-item{text-align:center}.stat-item .stat-num{font-family:'Playfair Display',serif;font-size:2em;color:var(--rouge);font-weight:700}
+.stat-item .stat-label{font-size:.7em;color:rgba(0,38,84,.45);text-transform:uppercase;letter-spacing:.12em;font-weight:500}
+/* Final slide */
+.final-wine-list{text-align:left;max-width:520px;margin:15px auto;font-size:.72em;columns:2;column-gap:30px}
+.final-wine-list div{padding:4px 0;break-inside:avoid}
+/* Region hero on reveal */
+.region-hero{font-family:'Playfair Display',serif;font-weight:700;color:var(--bleu);letter-spacing:-.01em}
+/* Blind stage slides */
+.blind-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:100%}
+.blind-stage .stage-num{font-family:'Playfair Display',serif;font-size:5.5em;font-weight:900;color:var(--blanc);text-shadow:0 0 80px rgba(201,169,78,.2);line-height:1;margin:0}
+.blind-stage .stage-sub{font-family:'DM Sans',sans-serif;font-size:.85em;color:var(--or);letter-spacing:.18em;text-transform:uppercase;font-weight:600;margin-top:8px}
+.blind-stage .glass-num{font-family:'DM Sans',sans-serif;font-size:1em;color:rgba(255,255,255,.45);letter-spacing:.12em;text-transform:uppercase;font-weight:500;margin-top:20px}
+.blind-stage .stage-question{font-family:'Playfair Display',serif;font-size:7em;font-weight:900;color:rgba(201,169,78,.08);line-height:.8;margin-bottom:-15px}
+/* Animations */
+.reveal .slides section{transition:all .6s cubic-bezier(.23,1,.32,1)}
+.reveal .fragment{transition:all .5s cubic-bezier(.23,1,.32,1)}
+.reveal .fragment.fade-up{transform:translateY(16px)}.reveal .fragment.fade-up.visible{transform:translateY(0)}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.reveal section.present .wine-card{animation:fadeSlideIn .6s ease both}
+.reveal section.present .split-slide .image-side img{animation:fadeSlideIn .7s .15s ease both}
+/* Map sidebar */
+#tour-map-panel{position:fixed;left:0;top:0;width:30vw;height:100vh;z-index:10;background:var(--bleu);border-right:2px solid var(--or);box-shadow:4px 0 30px rgba(0,0,0,.25)}
+#tour-map{width:100%;height:100%}
+.reveal-viewport{margin-left:30vw!important;width:70vw!important}
+#tour-map-panel .map-title{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:1000;font-family:'Playfair Display',serif;font-size:1em;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:.12em;text-shadow:0 2px 8px rgba(0,0,0,.5);background:rgba(0,38,84,.88);padding:7px 20px;border-radius:5px;border:1px solid rgba(201,169,78,.25);white-space:nowrap}
+#tour-map-panel .map-stage-label{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:1000;font-family:'DM Sans',sans-serif;font-size:.72em;font-weight:600;color:var(--blanc);text-transform:uppercase;letter-spacing:.14em;background:rgba(0,38,84,.92);padding:8px 18px;border-radius:5px;border:1px solid rgba(201,169,78,.15);text-align:center;white-space:nowrap;transition:all .4s ease}
+.stage-marker{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:800;color:var(--bleu);border:2px solid rgba(201,169,78,.5);transition:all .4s ease;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.stage-marker.visited{background:var(--or);border-color:var(--or)}
+.stage-marker.active{background:var(--rouge);border-color:var(--rouge);color:var(--blanc);width:34px;height:34px;font-size:13px;box-shadow:0 0 20px rgba(206,17,38,.5),0 0 40px rgba(206,17,38,.2)}
+.stage-marker.hidden{background:transparent;color:transparent;border-color:transparent;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none}
+.leaflet-popup-content-wrapper{background:rgba(0,38,84,.95)!important;color:var(--blanc)!important;border-radius:6px!important;border:1px solid rgba(201,169,78,.25)!important;box-shadow:0 4px 20px rgba(0,0,0,.35)!important}
+.leaflet-popup-tip{background:rgba(0,38,84,.95)!important}
+.leaflet-popup-content{font-family:'DM Sans',sans-serif!important;font-size:12px!important;margin:8px 12px!important}
+.leaflet-control-zoom a{background:rgba(0,38,84,.9)!important;color:var(--or)!important;border-color:rgba(201,169,78,.2)!important}
+.leaflet-control-attribution{display:none!important}
+</style>
+</head>
+<body>
+<div id="tour-map-panel">
+  <div class="map-title">Tour de France</div>
+  <div id="tour-map"></div>
+  <div class="map-stage-label">The Route</div>
+</div>
+<div class="reveal">
+<div class="slides">
+
+<!-- SLIDE 0: Title -->
+<section>
+  <div class="split-slide">
+    <div class="text-side" style="text-align:center;">
+      <h1 style="font-size:3.5em;margin-bottom:0;">TOUR DE FRANCE</h1>
+      <hr class="tricolore-rule-wide">
+      <div style="font-family:'Playfair Display',serif;font-size:1.2em;font-style:italic;color:var(--bleu);margin-top:12px;">An All-White Blind Tasting</div>
+      <div style="font-size:.75em;color:var(--or);margin-top:28px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;">Ten wines &middot; Ten regions &middot; Zero information</div>
+    </div>
+    <div class="image-side">
+      <img src="img/hero-image.jpg" alt="Vintage cyclist drinking wine">
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 1: Le Tour -->
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h2>Le Tour</h2>
+      <hr class="tricolore-rule" style="margin:12px 0;">
+      <div class="timeline">
+        <div class="timeline-item"><strong>1903</strong> &mdash; The first Tour. Created to sell newspapers. 60 riders, unpaved roads, no helmets, spare tyres around their shoulders. Maurice Garin, a chimney sweep, wins.</div>
+        <div class="timeline-item"><strong>The Route</strong> &mdash; ~3,500 km over 23 days through the mountains, coastline and countryside of France</div>
+        <div class="timeline-item"><strong>1919</strong> &mdash; The <em>maillot jaune</em> introduced &mdash; so the leader could be spotted in the crowd</div>
+        <div class="timeline-item"><strong>Today</strong> &mdash; The only race where millions line the roads for free &mdash; the biggest annual sporting event on earth</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/tour-de-france.jpg" alt="Tour de France peloton at Arc de Triomphe">
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 2: Il Pirata -->
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h2>Il Pirata</h2>
+      <hr class="tricolore-rule" style="margin:12px 0;">
+      <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:.95em;color:var(--or);line-height:1.6;margin:10px 0;">&ldquo;The greatest climber to ever turn a pedal.&rdquo;</p>
+      <p style="font-size:.82em;line-height:1.6;margin:8px 0;"><strong style="color:var(--rouge);">1998:</strong> Won both the Giro d&rsquo;Italia AND Tour de France in the same year &mdash; the last man to do it until Poga&#x10D;ar in 2024.</p>
+      <p style="font-size:.82em;line-height:1.6;margin:8px 0;"><strong style="color:var(--rouge);">Alpe d&rsquo;Huez:</strong> 13.8 km at 8% gradient in 37 minutes 35 seconds. Averaging 23 km/h <em>uphill</em>. The record still stands.</p>
+      <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:.95em;color:var(--or);line-height:1.6;margin:10px 0;">&ldquo;He didn&rsquo;t ride mountains. He floated up them.&rdquo;</p>
+      <p style="font-size:.82em;color:rgba(0,38,84,.65);margin:8px 0;">The bandana. The earring. The attack from kilometres out. <em>Il Pirata.</em></p>
+    </div>
+    <div class="image-side">
+      <img src="img/pantani.jpg" alt="Marco Pantani climbing" style="border:3px solid var(--or);">
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 3: The Case for White -->
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h2>The Case for White</h2>
+      <hr class="tricolore-rule" style="margin:12px 0;">
+      <p style="font-size:.9em;line-height:1.6;margin:12px 0;">France is synonymous with red &mdash; but its whites are equally extraordinary.</p>
+      <p style="font-size:.82em;color:rgba(0,38,84,.7);line-height:1.6;margin:10px 0;">Greeks planted the first vines in Marseille, 600 BC. Romans spread them across Gaul. Cistercian monks mapped terroir. The AOC system was born in 1936.</p>
+      <div class="stat-row" style="justify-content:flex-start;">
+        <div class="stat-item"><div class="stat-num">~40%</div><div class="stat-label">White wine</div></div>
+      </div>
+      <p style="font-size:.78em;font-style:italic;color:rgba(0,38,84,.5);margin:8px 0;">Home to Chardonnay, Sauvignon Blanc, Riesling, Viognier, Marsanne, Savagnin, Vermentino&hellip;</p>
+    </div>
+  </div>
+</section>
+
+<!-- SLIDE 4: Olympique de Marseille -->
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h2 style="color:var(--bleu);">Olympique de Marseille</h2>
+      <hr class="tricolore-rule" style="margin:12px 0;">
+      <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:1em;color:var(--or);line-height:1.5;margin:10px 0;">&ldquo;&Agrave; jamais les premiers.&rdquo;</p>
+      <p style="font-size:.82em;line-height:1.6;margin:8px 0;"><strong style="color:var(--rouge);">26 May 1993, Munich.</strong> Basile Boli rises, heads, scores. Olympique de Marseille beat AC Milan 1&ndash;0 to become the first &mdash; and still only &mdash; French club to win the Champions League.</p>
+      <p style="font-size:.82em;line-height:1.6;margin:8px 0;">A city that lives and breathes football. The V&eacute;lodrome, 67,000 voices, the most passionate fans in France. Marseille doesn&rsquo;t just support its club &mdash; it <em>is</em> its club.</p>
+      <p style="font-size:.82em;line-height:1.6;margin:8px 0;">From the Corniche to the Vieux-Port, from bouillabaisse to Boli &mdash; everything in Marseille is felt at full volume.</p>
+    </div>
+    <div class="image-side">
+      <img src="img/marseille.webp" alt="OM Champions League 1993" style="border:3px solid var(--bleu);">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 1 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 1</div>
+    <div class="stage-sub">Grand D&eacute;part</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #1</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 1</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Loire &mdash; Muscadet S&egrave;vre et Maine</div>
+      <div class="wine-card">
+        <div class="wine-name">Luneau-Papin &ldquo;Excelsior&rdquo; 2020</div>
+        <div class="wine-detail"><strong>Grapes:</strong> Melon de Bourgogne</div>
+        <div class="wine-classification">AOC Muscadet S&egrave;vre et Maine sur Lie</div>
+        <div class="scores">
+          <span class="score-badge alt">Flagship Cuv&eacute;e</span>
+        </div>
+        <div class="tasting-notes">&ldquo;Citrus, white peach, crushed granite. Creamy lees texture, saline finish. Old vines on gneiss.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/luneau-papin-excelsior.png" alt="Luneau-Papin Excelsior 2020" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 2 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 2</div>
+    <div class="stage-sub">En Route</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #2</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 2</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Bordeaux &mdash; Pessac-L&eacute;ognan</div>
+      <div class="wine-card">
+        <div class="wine-name">Ch&acirc;teau Olivier Blanc 2020</div>
+        <div class="wine-detail"><strong>Grapes:</strong> Sauvignon Blanc, S&eacute;millon</div>
+        <div class="wine-classification">Grand Cru Class&eacute; de Graves</div>
+        <div class="scores">
+          <span class="score-badge">Wine Enthusiast <span class="score-num">94</span></span>
+          <span class="score-badge">James Suckling <span class="score-num">94</span></span>
+          <span class="score-badge">Decanter <span class="score-num">93</span></span>
+        </div>
+        <div class="tasting-notes">&ldquo;Bright citrus, lime and honeyed mineral notes with exotic floral nuances. Clean, medium-bodied, vibrant.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/chateau-olivier-blanc.webp" alt="Ch&acirc;teau Olivier Blanc 2020" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 3 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 3</div>
+    <div class="stage-sub">Hors Cat&eacute;gorie</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #3</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 3</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Corsica &mdash; Patrimonio</div>
+      <div class="wine-card">
+        <div class="wine-name">Yves Leccia &lsquo;E Croce&rsquo; Blanc 2024</div>
+        <div class="wine-detail"><strong>Grapes:</strong> Vermentinu</div>
+        <div class="wine-classification">AOC Patrimonio &mdash; Organic</div>
+        <div class="scores">
+          <span class="score-badge">Wine Spectator <span class="score-num">90+</span></span>
+        </div>
+        <div class="tasting-notes">&ldquo;Fresh, full and floral. Lime, exotic fruit, round mouthfeel.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/leccia-e-croce-blanc.jpeg" alt="Yves Leccia E Croce Blanc" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 4 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 4</div>
+    <div class="stage-sub">Summit Finish</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #4</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 4</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Northern Rh&ocirc;ne &mdash; Hermitage</div>
+      <div class="wine-card">
+        <div class="wine-name">E. Guigal Hermitage Blanc 2019</div>
+        <div class="wine-detail"><strong>Grapes:</strong> Marsanne, Roussanne</div>
+        <div class="wine-classification">AOC Hermitage</div>
+        <div class="scores">
+          <span class="score-badge">James Suckling <span class="score-num">93</span></span>
+        </div>
+        <div class="tasting-notes">&ldquo;Beeswax, candied orange, toast. Bold, rich, creamy. Spiced apples, dried herbs, cedar.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/guigal-hermitage-blanc.png" alt="Guigal Hermitage Blanc" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 5 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 5</div>
+    <div class="stage-sub">King of the Mountains</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #5</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 5</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Jura &mdash; Arbois</div>
+      <div class="wine-card">
+        <div class="wine-name">Domaine du Pelican Arbois Savagnin Ouill&eacute; 2020</div>
+        <div class="wine-detail"><strong>Producer:</strong> Domaine du Pelican (Marquis d&rsquo;Angerville)</div>
+        <div class="wine-detail"><strong>Grapes:</strong> Savagnin</div>
+        <div class="wine-classification">AOC Arbois &mdash; Biodynamic, ouill&eacute; (non-oxidative)</div>
+        <div class="scores">
+          <span class="score-badge alt">CellarTracker <span class="score-num">89</span></span>
+        </div>
+        <div class="tasting-notes">&ldquo;Ripe yellow fruit, apple, mango. Meadow herbs, blossom honey, candied orange zest. Saline freshness, mineral finish.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/pelican-arbois.png" alt="Domaine du Pelican Arbois" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 6 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 6</div>
+    <div class="stage-sub">Contre-la-Montre</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #6</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 6</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Alsace &mdash; Ribeauvill&eacute;</div>
+      <div class="wine-card">
+        <div class="wine-name">Trimbach Riesling Cuv&eacute;e Fr&eacute;d&eacute;ric Emile 2015</div>
+        <div class="wine-detail"><strong>Grapes:</strong> Riesling</div>
+        <div class="wine-classification">Grand Cru Geisberg &amp; Osterberg &mdash; Flagship since 1919</div>
+        <div class="scores">
+          <span class="score-badge">Wine Enthusiast <span class="score-num">97</span></span>
+          <span class="score-badge">Wine Advocate <span class="score-num">95</span></span>
+          <span class="score-badge">J. Suckling <span class="score-num">95</span></span>
+        </div>
+        <div class="tasting-notes">&ldquo;Precise, savory. Full-bodied, energetic, vivacious. Long, tensioned, complex finish.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/trimbach-frederic-emile.png" alt="Trimbach Riesling Cuvée Frédéric Emile" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 7 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 7</div>
+    <div class="stage-sub">Maillot Jaune</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #7</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 7</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Burgundy &mdash; C&ocirc;te de Beaune</div>
+      <div class="wine-card">
+        <div class="wine-name">Olivier Leflaive Puligny-Montrachet 2018</div>
+        <div class="wine-detail"><strong>Producer:</strong> Olivier Leflaive</div>
+        <div class="wine-detail"><strong>Grapes:</strong> Chardonnay &mdash; 36-year-old vines, hand-harvested</div>
+        <div class="wine-classification">AOC Puligny-Montrachet &mdash; 17 months in oak (20% new)</div>
+        <div class="scores">
+          <span class="score-badge alt">N&eacute;gociant-&Eacute;leveur &mdash; Village</span>
+        </div>
+        <div class="tasting-notes">&ldquo;Noble, distinguished. Citrus and toasted aromas, beautiful minerality. Elegant and tonic with very long persistence.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/olivier-leflaive-puligny.webp" alt="Olivier Leflaive Puligny-Montrachet" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 8 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 8</div>
+    <div class="stage-sub">&Eacute;chapp&eacute;e</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #8</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 8</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Burgundy &mdash; Chablis</div>
+      <div class="wine-card">
+        <div class="wine-name">William F&egrave;vre Chablis Grand Cru Bougros 2019</div>
+        <div class="wine-detail"><strong>Grapes:</strong> Chardonnay</div>
+        <div class="wine-classification">Grand Cru</div>
+        <div class="scores">
+          <span class="score-badge">J. Suckling <span class="score-num">94</span></span>
+          <span class="score-badge">Jasper Morris <span class="score-num">94</span></span>
+          <span class="score-badge">Wine Advocate <span class="score-num">93+</span></span>
+        </div>
+        <div class="tasting-notes">&ldquo;Green orchard fruit, honey, peach, mint. Full-bodied, ample. Crystalline purity.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/fevre-bougros.webp" alt="William Fèvre Chablis Grand Cru Bougros" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 9 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 9</div>
+    <div class="stage-sub">Flamme Rouge</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #9</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 9</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Loire &mdash; Sancerre</div>
+      <div class="wine-card">
+        <div class="wine-name">Hubert Brochard Sancerre &lsquo;Terre de Silex&rsquo; 2023</div>
+        <div class="wine-detail"><strong>Grapes:</strong> Sauvignon Blanc</div>
+        <div class="wine-classification">AOC Sancerre</div>
+        <div class="scores">
+          <span class="score-badge">Wine Spectator <span class="score-num">92</span></span>
+          <span class="score-badge">Wine Review Online <span class="score-num">91</span></span>
+        </div>
+        <div class="tasting-notes">&ldquo;Concentrated, direct, mineral. White-pepper. Struck-match nose. 10% amphora-aged.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/brochard-sancerre.png" alt="Brochard Sancerre Terre de Silex" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STAGE 10 ═══════════════ -->
+<section data-background-color="#002654">
+  <div class="blind-stage">
+    <div class="stage-question">?</div>
+    <div class="stage-num">STAGE 10</div>
+    <div class="stage-sub">Champs-&Eacute;lys&eacute;es</div>
+    <hr class="tricolore-rule">
+    <div class="glass-num">Glass #10</div>
+  </div>
+</section>
+
+<section>
+  <div class="split-slide">
+    <div class="text-side">
+      <h3 style="margin:0;">STAGE 10</h3>
+      <div class="region-hero" style="font-size:1.8em;margin:4px 0 14px;">Champagne &mdash; Ambonnay</div>
+      <div class="wine-card">
+        <div class="wine-name">Soutiran Collection Priv&eacute;e Grand Cru</div>
+        <div class="wine-detail"><strong>Grapes:</strong> 56% Pinot Noir, 44% Chardonnay</div>
+        <div class="wine-classification">Grand Cru &mdash; Limited Edition, Numbered Bottles</div>
+        <div class="scores">
+          <span class="score-badge">Wine Enthusiast <span class="score-num">95</span></span>
+          <span class="score-badge alt">Wine Advocate <span class="score-num">93</span></span>
+        </div>
+        <div class="tasting-notes">&ldquo;Baked apples, brioche, lemon zest, crushed almonds. Rich texture, fine mousse, fresh finish.&rdquo;</div>
+      </div>
+    </div>
+    <div class="image-side">
+      <img src="img/soutiran-collection-privee.png" alt="Soutiran Collection Privée Grand Cru" class="img-tall">
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FINAL ═══════════════ -->
+<section data-background-color="#002654">
+  <div style="color:var(--blanc);text-align:center;">
+    <h2 style="color:var(--or);font-size:2.5em;">Tour complet.</h2>
+    <hr class="tricolore-rule-wide">
+    <div class="final-wine-list" style="color:var(--blanc);">
+      <div><span style="color:var(--or);font-weight:700;">1.</span> Luneau-Papin &ldquo;Excelsior&rdquo;</div>
+      <div><span style="color:var(--or);font-weight:700;">2.</span> Ch&acirc;teau Olivier Blanc</div>
+      <div><span style="color:var(--or);font-weight:700;">3.</span> Yves Leccia &lsquo;E Croce&rsquo;</div>
+      <div><span style="color:var(--or);font-weight:700;">4.</span> Guigal Hermitage Blanc</div>
+      <div><span style="color:var(--or);font-weight:700;">5.</span> Pelican Savagnin Ouill&eacute;</div>
+      <div><span style="color:var(--or);font-weight:700;">6.</span> Trimbach Fr&eacute;d&eacute;ric Emile 2015</div>
+      <div><span style="color:var(--or);font-weight:700;">7.</span> Olivier Leflaive Puligny</div>
+      <div><span style="color:var(--or);font-weight:700;">8.</span> F&egrave;vre Grand Cru Bougros</div>
+      <div><span style="color:var(--or);font-weight:700;">9.</span> Brochard Terre de Silex</div>
+      <div><span style="color:var(--or);font-weight:700;">10.</span> Soutiran Collection Priv&eacute;e</div>
+    </div>
+    <p style="font-size:1.3em;color:var(--or);font-family:'Playfair Display',serif;font-weight:700;margin-top:20px;">Merci, et sant&eacute;.</p>
+  </div>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// --- Tour Map ---
+const stages = [
+  {num:1, name:'Muscadet',      region:'Loire',                  lat:47.20, lng:-1.35},
+  {num:2, name:'Bordeaux',      region:'Pessac-L\u00e9ognan',    lat:44.75, lng:-0.55},
+  {num:3, name:'Patrimonio',    region:'Corsica',                lat:42.67, lng:9.37},
+  {num:4, name:'Hermitage',     region:'Northern Rh\u00f4ne',    lat:45.07, lng:4.84},
+  {num:5, name:'Arbois',        region:'Jura',                   lat:46.90, lng:5.77},
+  {num:6, name:'Ribeauvill\u00e9', region:'Alsace',              lat:48.20, lng:7.32},
+  {num:7, name:'Puligny',       region:'C\u00f4te de Beaune',    lat:46.95, lng:4.75},
+  {num:8, name:'Chablis',       region:'Northern Burgundy',      lat:47.81, lng:3.80},
+  {num:9, name:'Sancerre',      region:'Loire',                  lat:47.33, lng:2.84},
+  {num:10,name:'Reims',         region:'Champagne',              lat:49.25, lng:3.88}
+];
+
+const map = L.map('tour-map', {
+  center: [46.5, 3.5],
+  zoom: 6,
+  zoomControl: true,
+  attributionControl: false,
+  scrollWheelZoom: false,
+  dragging: true
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19
+}).addTo(map);
+
+const markers = [];
+const routeLines = [];
+
+stages.forEach(function(s) {
+  var icon = L.divIcon({
+    className: '',
+    html: '<div class="stage-marker hidden">' + s.num + '</div>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
+  var marker = L.marker([s.lat, s.lng], {icon: icon}).addTo(map);
+  marker.bindPopup(
+    '<div style="text-align:center;">' +
+    '<div style="color:#C9A94E;font-family:Playfair Display,serif;font-size:14px;font-weight:700;">Stage ' + s.num + '</div>' +
+    '<div style="color:#FFF;font-size:13px;margin-top:2px;">' + s.name + '</div>' +
+    '<div style="color:rgba(255,255,255,.55);font-size:11px;">' + s.region + '</div>' +
+    '</div>',
+    {closeButton: false, offset: [0, -8]}
+  );
+  markers.push(marker);
+});
+
+function drawRouteTo(stageIndex) {
+  routeLines.forEach(function(l) { map.removeLayer(l); });
+  routeLines.length = 0;
+  for (var i = 0; i < stageIndex; i++) {
+    var from = stages[i], to = stages[i + 1];
+    var isDashed = (i === 1 || i === 2);
+    var line = L.polyline(
+      [[from.lat, from.lng], [to.lat, to.lng]],
+      {color: '#C9A94E', weight: 2.5, opacity: 0.7, dashArray: isDashed ? '8 6' : null}
+    ).addTo(map);
+    routeLines.push(line);
+  }
+}
+
+var revealedStages = {};
+
+function updateMap(slideIndex) {
+  var label = document.querySelector('.map-stage-label');
+
+  // Slides 0-4: intro (Title, Le Tour, Il Pirata, White, OM)
+  // Then groups of 2 per stage: blind(0), reveal(1)
+  // Final slide after all stages
+  if (slideIndex <= 4) {
+    markers.forEach(function(m) {
+      m.getElement().querySelector('.stage-marker').className = 'stage-marker hidden';
+      m.closePopup();
+    });
+    routeLines.forEach(function(l) { map.removeLayer(l); });
+    routeLines.length = 0;
+    map.flyTo([46.5, 3.5], 6, {duration: 1});
+    label.textContent = 'The Route';
+    return;
+  }
+
+  var finalSlide = 5 + (10 * 2); // slide 25
+  if (slideIndex >= finalSlide) {
+    for (var k = 1; k <= 10; k++) revealedStages[k] = true;
+    markers.forEach(function(m) {
+      m.getElement().querySelector('.stage-marker').className = 'stage-marker visited';
+    });
+    drawRouteTo(9);
+    map.flyTo([46.5, 3.5], 6, {duration: 1});
+    label.textContent = 'Tour Complet';
+    return;
+  }
+
+  var groupIndex = slideIndex - 5;
+  var stageNum = Math.floor(groupIndex / 2) + 1;
+  var slideWithinStage = groupIndex % 2; // 0=blind, 1=reveal
+
+  if (slideWithinStage >= 1) {
+    revealedStages[stageNum] = true;
+  }
+
+  markers.forEach(function(m, i) {
+    var num = i + 1;
+    var el = m.getElement().querySelector('.stage-marker');
+    if (!revealedStages[num]) {
+      el.className = 'stage-marker hidden';
+      m.closePopup();
+    } else if (num === stageNum && slideWithinStage >= 1) {
+      el.className = 'stage-marker active';
+    } else {
+      el.className = 'stage-marker visited';
+      m.closePopup();
+    }
+  });
+
+  routeLines.forEach(function(l) { map.removeLayer(l); });
+  routeLines.length = 0;
+  var revArr = Object.keys(revealedStages).map(Number).sort(function(a,b){return a-b;});
+  for (var j = 0; j < revArr.length - 1; j++) {
+    var fromIdx = revArr[j] - 1, toIdx = revArr[j + 1] - 1;
+    var from = stages[fromIdx], to = stages[toIdx];
+    var isDashed = (fromIdx === 1 || fromIdx === 2);
+    var line = L.polyline(
+      [[from.lat, from.lng], [to.lat, to.lng]],
+      {color: '#C9A94E', weight: 2.5, opacity: 0.7, dashArray: isDashed ? '8 6' : null}
+    ).addTo(map);
+    routeLines.push(line);
+  }
+
+  if (slideWithinStage === 0) {
+    map.flyTo([46.5, 3.5], 6, {duration: 1});
+    label.textContent = 'Stage ' + stageNum + ' \u2014 ???';
+  } else {
+    var s = stages[stageNum - 1];
+    map.flyTo([s.lat, s.lng], 7, {duration: 1.2});
+    markers[stageNum - 1].openPopup();
+    label.textContent = 'Stage ' + stageNum + ' \u2014 ' + s.name;
+  }
+}
+
+// --- Reveal.js ---
+Reveal.initialize({
+  hash: true,
+  slideNumber: true,
+  transition: 'fade',
+  transitionSpeed: 'slow',
+  controls: true,
+  progress: true,
+  center: true,
+  width: 960,
+  height: 700,
+  margin: 0.08,
+  autoAnimateEasing: 'cubic-bezier(.23,1,.32,1)',
+  autoAnimateDuration: 0.9
+});
+
+Reveal.on('slidechanged', function(event) {
+  updateMap(event.indexh);
+});
+
+Reveal.on('ready', function() {
+  setTimeout(function() { map.invalidateSize(); }, 300);
+  updateMap(0);
+});
+</script>
+</body>
+</html>
