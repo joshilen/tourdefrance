@@ -89,10 +89,10 @@
   .reveal .slides section{padding:12px 18px}
   .reveal h1{font-size:2.2em}
   .reveal h2{font-size:1.6em}
-  .split-slide{flex-direction:column-reverse;height:auto;gap:12px;align-items:center}
-  .split-slide .text-side{text-align:left;width:100%}
-  .split-slide .image-side{flex:0 0 auto;height:250px;width:100%}
-  .split-slide .image-side img{height:250px;width:100%;object-fit:cover}
+  .split-slide{flex-direction:row;height:100%;gap:12px;align-items:stretch}
+  .split-slide .text-side{flex:1;min-width:0;text-align:left;overflow-y:auto}
+  .split-slide .image-side{flex:0 0 35%;height:auto}
+  .split-slide .image-side img{height:100%;width:100%;object-fit:cover}
   .region-hero{font-size:1.4em!important}
   .wine-name{font-size:1.3em}
   .wine-detail{font-size:.85em}
